@@ -8,23 +8,15 @@ class Client:
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def connect(self, server_address):
-        self.client_socket.connect(server_address)
-        try:
-            message = 'ALE ON MA........ NIHIHIHHIHHIHIHIHIHIHIHIHIHIHIHIHIHIHII!'
-            print("sending: " + message)
-            self.client_socket.sendall(message.encode())
-
-            # Look for the response
-            amount_received = 0
-            amount_expected = len(message)
-
-            while amount_received < amount_expected:
-                data = self.client_socket.recv(16).decode()
-                amount_received += len(data)
-                print("Received: " + str(data))
-        finally:
-            print("Closing socket....")
-            self.close()
+        while True:
+            try:
+                print("Connecting to the game server..")
+                self.client_socket.connect(server_address)
+                return True
+            except:
+                print("A problem occured..")
+                exit()
+            return False
 
     def close(self):
         # Shut down the socket to prevent further sends/receives
@@ -40,10 +32,8 @@ def main():
         address = argv[1]
         port_number = argv[2]
     else:
-        # Ask the user to input the address and port number
-        # address = input("Please enter the address:")
         port_number = input("Please enter the port:")
-        address = input("Please eneter the server address: ")
+        address = input("Please enter the server address: ")
 
     client = Client()
     server_address = (address, int(port_number))
