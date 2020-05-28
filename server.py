@@ -46,39 +46,36 @@ class Server:
                 print("Sth went wrong..... ")
 
     def client_thread(self, player):
-        try:
-            player.send("A", str(player.id))
+        # try:
+        player.send("A", str(player.id))
             # potwierdzenie od klienta ????
-            while player.is_waiting:
-                # If the player is still waiting for another player to join
-                # Try to match this player with other waiting players
-                match_result = self.matching_player(player)
+        while player.is_waiting:
+            # If the player is still waiting for another player to join
+            # Try to match this player with other waiting players
+            match_result = self.matching_player(player)
 
-                if (match_result is None):
-                    time.sleep(1)
-                else:
-                    # if matched with another player
+            if match_result is None:
+                time.sleep(1)
+            else:
+                # if matched with another player
 
-                    # Initialize a new Game object to store the game's infomation
-                    new_game = Game()
-                    # Assign both players
-                    new_game.player1 = player
-                    new_game.player2 = match_result
-                    # Create an empty string for empty board content
-                    new_game.board_content = list("         ")
+                # Initialize a new Game object to store the game's infomation
+                new_game = Game(player, match_result)
 
-                    try:
-                        # Game starts
-                        new_game.start()
-                    except:
-                        print("STH went wrong")
-                    # End this thread
-                    return
+                # try:
+                #     # Game starts
+                new_game.start()
+                # except:
+                #     print("STH went wrong")
+                #     exit()
+                # # End this thread
+                return
 
-        except:
-            print("Sth went wrong")
-        finally:
-            self.waiting_players.remove(player)
+        # except:
+        #     print("Sth went wrong")
+        #     exit()
+        # finally:
+        #     self.waiting_players.remove(player)
 
     def matching_player(self, player):
         self.lock_matching.acquire()
@@ -91,9 +88,11 @@ class Server:
                     p.role = "O"
                     player.is_waiting = False
                     p.is_waiting = False
+                    return p
         finally:
             self.lock_matching.release()
         return None
+
 
 
 class Player:
@@ -136,12 +135,12 @@ class Player:
         # Send to client the assigned role
         self.send("R", self.role)
         # Waiting for client to confirm
-        if (self.recv(2, "c") != "2"):
+        if self.recv(2, "c") != "2":
             self.__connection_lost()
         # Sent to client the matched player's ID
         self.send("I", str(self.match.id))
         # Waiting for client to confirm
-        if (self.recv(2, "c") != "3"):
+        if self.recv(2, "c") != "3":
             self.__connection_lost()
 
     def __connection_lost(self):
