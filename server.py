@@ -35,7 +35,7 @@ class Server:
     def __main_loop(self):
         # Loop to infinitely accept new clients
         while True:
-            #akceptujemy klientow
+            # accept client
             connection, client_address = self.server_socket.accept()
             new_player = Player(connection)
             self.waiting_players.append(new_player)
@@ -44,39 +44,33 @@ class Server:
             try:
                 threading.Thread(target=self.client_thread, args=(new_player,)).start()
             except:
-                print("Client se poszedł... - linijka 47")
+                print("The problem with client occured")
 
     def client_thread(self, player):
-        # try:
-        player.send("A", str(player.id))
-            # potwierdzenie od klienta ????
-        while player.is_waiting:
-            # If the player is still waiting for another player to join
-            # Try to match this player with other waiting players
-            match_result = self.matching_player(player)
+        try:
+            # send client ids
+            player.send("A", str(player.id))
+            while player.is_waiting:
+                # If the player is still waiting for another player to join
+                # Try to match this player with other waiting players
+                match_result = self.matching_player(player)
 
-            if match_result is None:
-                time.sleep(1)
-            else:
-                # if matched with another player
-
-                # Initialize a new Game object to store the game's infomation
-                new_game = Game(player, match_result)
-
-                # try:
-                #     # Game starts
-                new_game.start()
-                # except:
-                #     print("STH went wrong")
-                #     exit()
-                # # End this thread
-                return
-
-        # except:
-        #     print("Sth went wrong")
-        #     exit()
-        # finally:
-        #     self.waiting_players.remove(player)
+                if match_result is None:
+                    time.sleep(1)
+                else:
+                    # if matched with another player
+                    # Initialize a new Game object to store the game's infomation
+                    new_game = Game(player, match_result)
+                    try:
+                        new_game.start()
+                    except:
+                        print("Game is unexpectadly finished -,-")
+                    return
+        except:
+            print("Player " + str(player.id) + " disconnected.")
+        finally:
+            # remove client from waiting list
+            self.waiting_players.remove(player)
 
     def matching_player(self, player):
         self.lock_matching.acquire()
@@ -91,9 +85,9 @@ class Server:
                     p.is_waiting = False
                     return p
         finally:
+            # eh XD!
             self.lock_matching.release()
         return None
-
 
 
 class Player:
@@ -130,8 +124,7 @@ class Player:
             self.connection.send((command_type + msg).encode())
         except:
             self.__connection_lost()
-            print("Wyslanie sie nie powiodło - linijka 132")
-            exit()
+            print("Something went wrong - one of the clients failed")
 
     def send_match_info(self):
         # Send to client the assigned role
@@ -147,6 +140,7 @@ class Player:
 
     def __connection_lost(self):
         try:
+            # inform clients about lost connections
             self.match.send("Q", "The other player has lost connection" +
                             " with the server.\nGame over.")
         except:
@@ -173,7 +167,6 @@ def main():
         server.start_game()
         # server.close()
     finally:
-        print("Boranheyo <3")
-
+        print("I wish you Merry Christmas and a Happy New Year!")
 
 main()
