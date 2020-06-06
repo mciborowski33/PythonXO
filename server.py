@@ -4,6 +4,7 @@ import time
 from sys import argv
 from game import Game
 
+
 class Server:
 
     def __init__(self):
@@ -43,7 +44,7 @@ class Server:
             try:
                 threading.Thread(target=self.client_thread, args=(new_player,)).start()
             except:
-                print("Sth went wrong..... ")
+                print("Client se poszedł... - linijka 47")
 
     def client_thread(self, player):
         # try:
@@ -128,7 +129,8 @@ class Player:
         try:
             self.connection.send((command_type + msg).encode())
         except:
-            print("EH")
+            self.__connection_lost()
+            print("Wyslanie sie nie powiodło - linijka 132")
             exit()
 
     def send_match_info(self):
@@ -164,7 +166,7 @@ def main():
         # address = int("Please enter the server address: ")
 
     try:
-        address = "192.168.1.4"
+        address = "127.0.0.1"
         server_address = (address, int(port_number))
         server = Server()
         server.bind(server_address)
