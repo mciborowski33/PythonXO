@@ -211,13 +211,15 @@ def main():
         address = argv[1]
         port_number = argv[2]
     else:
-        port_number = input("Please enter the port:")
-        address = input("Please enter the server address: ")
+        #port_number = input("Please enter the port:")
+        #address = input("Please enter the server address: ")
+        address = socket.getaddrinfo("stormwind", 12345)[0][4][0]
+        port_number = 12345
 
     client = Client()
+    print("Connecting to " + address)
     server_address = (address, int(port_number))
     client.connect(server_address)
     client.start_game()
-
 
 main()

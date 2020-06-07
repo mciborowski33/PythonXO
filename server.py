@@ -3,6 +3,8 @@ import threading
 import time
 from sys import argv
 from game import Game
+import daemon
+import syslog
 
 
 class Server:
@@ -14,17 +16,17 @@ class Server:
         while True:
             try:
                 self.server_socket.bind(server_address)
-                print("Waiting for clients....")
+                syslog.syslog("Waiting for clients....")
                 self.server_socket.listen(1)
                 break
             except:
-                print("There is an error when trying to bind " +
+                syslog.syslog("There is an error when trying to bind " +
                       str(server_address[1]))
-                print("Try again")
+                syslog.syslog("Try again")
                 exit()
 
     def close(self):
-        print("Closing connection....")
+        syslog.syslog("Closing connection....")
         self.server_socket.close()
 
     def start_game(self):
@@ -39,12 +41,12 @@ class Server:
             connection, client_address = self.server_socket.accept()
             new_player = Player(connection)
             self.waiting_players.append(new_player)
-            print("Recived connection from: " + str(client_address))
-            print(new_player.id)
+            syslog.syslog("Received connection from: " + str(client_address))
+            syslog.syslog(str(new_player.id))
             try:
                 threading.Thread(target=self.client_thread, args=(new_player,)).start()
             except:
-                print("The problem with client occured")
+                syslog.syslog("The problem with client occured")
 
     def client_thread(self, player):
         try:
@@ -64,10 +66,10 @@ class Server:
                     try:
                         new_game.start()
                     except:
-                        print("Game is unexpectadly finished -,-")
+                        syslog.syslog("Game is unexpectadly finished -,-")
                     return
         except:
-            print("Player " + str(player.id) + " disconnected.")
+            syslog.syslog("Player " + str(player.id) + " disconnected.")
         finally:
             # remove client from waiting list
             self.waiting_players.remove(player)
@@ -124,7 +126,7 @@ class Player:
             self.connection.send((command_type + msg).encode())
         except:
             self.__connection_lost()
-            print("Something went wrong - one of the clients failed")
+            syslog.syslog("Something went wrong - one of the clients failed")
 
     def send_match_info(self):
         # Send to client the assigned role
@@ -156,17 +158,20 @@ def main():
         port_number = argv[1]
     else:
         # Ask the user to input port number
-        port_number = input("Please enter the port: ")
+        #port_number = input("Please enter the port: ")
         # address = int("Please enter the server address: ")
+        port_number = 12345
 
     try:
-        address = "127.0.0.1"
+        address = socket.getaddrinfo("stormwind", 12345)[0][4][0]
+        syslog.syslog("server binding to " + address)
         server_address = (address, int(port_number))
         server = Server()
         server.bind(server_address)
         server.start_game()
         # server.close()
     finally:
-        print("I wish you Merry Christmas and a Happy New Year!")
+        syslog.syslog("I wish you Merry Christmas and a Happy New Year!")
 
-main()
+with daemon.DaemonContext():
+    main()
