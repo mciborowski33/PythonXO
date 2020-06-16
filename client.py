@@ -20,7 +20,7 @@ class Client:
                 return True
             except:
                 # if problem -> end program
-                print("A problem occured...try again")
+                print("A problem occured... try again")
                 exit()
             return False
 
@@ -48,17 +48,10 @@ class Client:
                     why_quit = self.client_socket.recv(1024).decode()
                 except:
                     pass
-                print(msg[1:] + why_quit)
+                # print(msg[1:] + why_quit)
+                print(why_quit)
                 # Throw an error
-                raise Exception
-            # If received an echo signal from the server
-            # elif msg[0] == 'E':
-            #     # Echo the message back to the server
-            #     self.s_send("e", msg[1:])
-            #     # Recursively retrive the desired message
-            #     return self.s_recv(size, expected_type)
-            # elif msg[0] == 'H':
-            #     return msg[1:]
+                #raise Exception
             elif msg[0] == 'B':  # board
                 return msg[1:]
             elif msg[0] == 'C':  # state - play, wait, win, loose
@@ -84,33 +77,35 @@ class Client:
             # send info that something is wrong
             self.client_socket.send("q".encode())
         except:
-            pass
-        # raise and error if it something serious
-        raise Exception
+            # raise and error if it something serious
+            print("Connection is lost... dragon ate the server or another player")
+            raise Exception
 
     def start_game(self):
-        # recv my id
-        self.player_id = int(self.s_recv(128, "A"))
-        print(self.player_id)
-        self.connected()
-        # info about the role
-        self.role = str(self.s_recv(2, "R"))
-        print("My role: " + str(self.role))
-        # send ack that everything is ok
-        self.s_send("c", "2")
-        # Receive the matched player's ID from the server
-        self.match_id = int(self.s_recv(128, "I"))
-        print("My partner id is: " + str(self.match_id))
-        # Confirm the matched player's ID has been received
-        self.s_send("c", "3")
-        print(("You are now matched with player " + str(self.match_id)
-               + "\nYou are the \"" + self.role + "\""))
-        # Start the main loop
-        self.main_loop()
+        try:
+            # recv my id
+            self.player_id = int(self.s_recv(128, "A"))
+            self.connected()
+            # info about the role
+            self.role = str(self.s_recv(2, "R"))
+            print("My role: " + str(self.role))
+            # send ack that everything is ok
+            self.s_send("c", "2")
+            # Receive the matched player's ID from the server
+            self.match_id = int(self.s_recv(128, "I"))
+            print("My partner id is: " + str(self.match_id))
+            # Confirm the matched player's ID has been received
+            self.s_send("c", "3")
+            print(("You are now matched with player " + str(self.match_id)
+                   + "\nYou are the \"" + self.role + "\""))
+            # Start the main loop
+            self.main_loop()
+        except:
+            self.connection_lost()
 
     def connected(self):
-        print("Welcome to Tic Tac Toe online, player " + str(self.player_id)
-              + "\nPlease wait for another player to join the game...")
+        print("Welcome to PythonXO, player " + str(self.player_id)
+              + "\nPlease wait for another player to join the game...\n So get a cup of tea or something else ( ͡° ͜ʖ ͡°)")
 
     def main_loop(self):
         while True:
@@ -143,7 +138,7 @@ class Client:
             else:
                 # If the server sends back anything unrecognizable
                 # Simply print it
-                print("Error: unknown message was sent from the server");
+                print("Error: unknown message was sent from the server, probably it went mad so goodbye")
                 # And finish
                 break
 
@@ -166,16 +161,13 @@ class Client:
                       "corresponds to the position on the grid board.")
         self.s_send("i", str(position))
 
-
     def __player_wait__(self):
         print("Waiting for the other player to make a move...")
 
-
     def __update_board__(self, command, board_string):
-
         if command == "Y":
             # If it's this player's turn to move, print out the current
-            # board with " " converted to the corresponding position number
+            # board with " " converted to the position number
             print("Current board:\n" + self.format_board(self.show_board_pos(board_string)))
         else:
             # Print out the current board
@@ -183,7 +175,7 @@ class Client:
 
     def show_board_pos(self, s):
         new_s = list("123456789")
-        for i in range(0, 8):
+        for i in range(0, 9):
             if s[i] != " ":
                 new_s[i] = s[i]
         return "".join(new_s)
@@ -192,13 +184,9 @@ class Client:
         # If the length of the string is not 9
         if len(s) != 9:
             # Then print out an error message
-            print("Error: there should be 9 symbols.");
+            print("Error: there should be 9 symbols.")
             # Throw an error
             raise Exception
-        # Draw the grid board
-        # print("|1|2|3|");
-        # print("|4|5|6|");
-        # print("|7|8|9|");
         return ("|" + s[0] + "|" + s[1] + "|" + s[2] + "|\n"
                 + "|" + s[3] + "|" + s[4] + "|" + s[5] + "|\n"
                 + "|" + s[6] + "|" + s[7] + "|" + s[8] + "|\n")
@@ -206,14 +194,15 @@ class Client:
 
 def main():
     # If there are more than 3 arguments
-    if (len(argv) >= 3):
+    if len(argv) >= 3:
         # Set the address to argument 1, and port number to argument 2
         address = argv[1]
         port_number = argv[2]
     else:
-        #port_number = input("Please enter the port:")
-        #address = input("Please enter the server address: ")
-        address = socket.getaddrinfo("stormwind", 12345)[0][4][0]
+        # port_number = input("Please enter the port:")
+        # address = input("Please enter the server address: ")
+        # address = socket.getaddrinfo("stormwind", 12345)[0][4][0]
+        address = "127.0.0.1"
         port_number = 12345
 
     client = Client()
@@ -221,5 +210,6 @@ def main():
     server_address = (address, int(port_number))
     client.connect(server_address)
     client.start_game()
+
 
 main()

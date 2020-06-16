@@ -83,8 +83,6 @@ class Game:
             waiting_player.send("Q", "Second player run away...")
 
     def check_winner(self, player):
-        """Checks if the player wins the game. Returns 1 if wins,
-        0 if it's a draw, -1 if there's no result yet."""
         s = self.board_content
 
         # Check columns
