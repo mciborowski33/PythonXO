@@ -1,5 +1,6 @@
 import socket
 from sys import argv
+import os
 
 
 class Client:
@@ -165,6 +166,9 @@ class Client:
         print("Waiting for the other player to make a move...")
 
     def __update_board__(self, command, board_string):
+        os.system("cls")
+        print("My role: " + str(self.role))
+
         if command == "Y":
             # If it's this player's turn to move, print out the current
             # board with " " converted to the position number
