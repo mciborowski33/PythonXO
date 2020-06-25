@@ -1,6 +1,7 @@
 import socket
 from sys import argv
 import os
+import time
 
 
 class Client:
@@ -125,21 +126,25 @@ class Client:
             elif command == "D":
                 # If the result is a draw
                 print("It's a draw.")
+                time.sleep(5)
                 break
             elif command == "W":
                 # If this player wins
                 print("You WIN!")
+                time.sleep(5)
                 # Break the loop and finish
                 break
             elif command == "L":
                 # If this player loses
                 print("You lose.... :'(")
+                time.sleep(5)
                 # Break the loop and finish
                 break
             else:
                 # If the server sends back anything unrecognizable
                 # Simply print it
                 print("Error: unknown message was sent from the server, probably it went mad so goodbye")
+                time.sleep(5)
                 # And finish
                 break
 
@@ -168,7 +173,6 @@ class Client:
     def __update_board__(self, command, board_string):
         os.system("cls")
         print("My role: " + str(self.role))
-
         if command == "Y":
             # If it's this player's turn to move, print out the current
             # board with " " converted to the position number
@@ -178,7 +182,7 @@ class Client:
             print("Current board:\n" + self.format_board(self.show_board_pos(board_string)))
 
     def show_board_pos(self, s):
-        new_s = list("123456789")
+        new_s = list("______   ")
         for i in range(0, 9):
             if s[i] != " ":
                 new_s[i] = s[i]
@@ -191,9 +195,9 @@ class Client:
             print("Error: there should be 9 symbols.")
             # Throw an error
             raise Exception
-        return ("|" + s[0] + "|" + s[1] + "|" + s[2] + "|\n"
-                + "|" + s[3] + "|" + s[4] + "|" + s[5] + "|\n"
-                + "|" + s[6] + "|" + s[7] + "|" + s[8] + "|\n")
+        return ("1|2|3" + "     " + s[0] + "|" + s[1] + "|" + s[2] + "\n"
+                + "4|5|6" + "     " + s[3] + "|" + s[4] + "|" + s[5] + "\n"
+                + "7|8|9") + "     " + s[6] + "|" + s[7] + "|" + s[8] + "\n"
 
 
 def main():
