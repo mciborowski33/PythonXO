@@ -3,6 +3,8 @@ import threading
 import time
 from sys import argv
 from game import Game
+
+
 # import daemon
 # import sys
 
@@ -11,6 +13,8 @@ class Server:
 
     def __init__(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.waiting_players = []
+        self.lock_matching = threading.Lock()
 
     def bind(self, server_address):
         while True:
@@ -23,8 +27,7 @@ class Server:
                 # syslog.syslog("There is an error when trying to bind " + str(server_address[1]))
                 # syslog.syslog("Try again")
                 print("There is an error when trying to bind " + str(server_address[1]))
-                print("Try again...\n or change the computer...")
-                exit()
+                print("Try again...\n or change the computer...ha ha")
 
     def close(self):
         # syslog.syslog("Closing connection....")
@@ -32,8 +35,6 @@ class Server:
         self.server_socket.close()
 
     def start_game(self):
-        self.waiting_players = []
-        self.lock_matching = threading.Lock()
         self.__main_loop()
 
     def __main_loop(self):
@@ -56,20 +57,22 @@ class Server:
             # send client ids
             player.send("A", str(player.id))
             while player.is_waiting:
-                # If the player is still waiting for another player to join
-                # Try to match this player with other waiting players
+                # Try to match this player with other waiting players if any exists
                 match_result = self.matching_player(player)
 
-                if match_result is None:
+                if match_result is None:  # if you are alone :'(
                     time.sleep(1)
+                    player.check_connection()
                 else:
                     # if matched with another player
-                    # Initialize a new Game object to store the game's infomation
+                    # Initialize a new Game object to store the game's info
                     new_game = Game(player, match_result)
                     try:
                         new_game.start()
                     except:
-                        print("Game is unexpectadly finished -,-")
+                        print("Game is unexpectadly finished")
+                        # player.__connection_lost()
+                        player.send("Q", "Second player run away...")
                         # syslog.syslog("Game is unexpectadly finished -,-")
                     return
         except:
@@ -97,11 +100,10 @@ class Server:
 
 
 class Player:
-
     count = 0
 
     def __init__(self, connection):
-        Player.count = Player.count+1
+        Player.count = Player.count + 1
         self.id = Player.count
         self.connection = connection
         self.is_waiting = True
@@ -150,8 +152,14 @@ class Player:
             # inform clients about lost connections
             self.match.send("Q", "The other player has lost connection with the server.\nGame over.")
         except:
-            print("Info sent....")
-           # raise Exception
+            pass
+        raise Exception
+
+    def check_connection(self):
+        # Sends a meesage to check if the client is still properly connected.
+        self.send("E", "z")
+        if self.recv(2, "e") != "z":
+            self.__connection_lost()
 
 
 def main():
@@ -167,7 +175,7 @@ def main():
         port_number = 12345
 
     try:
-        #address = socket.getaddrinfo("stormwind", 12345)[0][4][0]
+        # address = socket.getaddrinfo("stormwind", 12345)[0][4][0]
         address = "127.0.0.1"
         # syslog.syslog("server binding to " + address)
         server_address = (address, int(port_number))
@@ -178,6 +186,7 @@ def main():
     finally:
         print("I wish you Merry Christmas and a Happy New Year!")
         # syslog.syslog("I wish you Merry Christmas and a Happy New Year!")
+
 
 
 main()

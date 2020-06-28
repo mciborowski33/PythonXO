@@ -50,9 +50,12 @@ class Client:
                 except:
                     pass
                 # print(msg[1:] + why_quit)
-                print(why_quit)
+                print(why_quit[1:])
                 # Throw an error
-                #raise Exception
+                # raise Exception
+            elif msg[0] == 'E':  # to check connection
+                self.s_send("e", msg[1:])
+                return self.s_recv(size, expected_type)
             elif msg[0] == 'B':  # board
                 return msg[1:]
             elif msg[0] == 'C':  # state - play, wait, win, loose
