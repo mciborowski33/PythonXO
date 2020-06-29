@@ -228,8 +228,8 @@ def main():
     else:
         # port_number = input("Please enter the port:")
         # address = input("Please enter the server address: ")
-        # address = socket.getaddrinfo("stormwind", 12345)[0][4][0]
-        address = "127.0.0.1"
+        address = socket.getaddrinfo("stormwind", 12345)[0][4][0]
+        #address = "127.0.0.1"
         port_number = 12345
 
     client = Client()
