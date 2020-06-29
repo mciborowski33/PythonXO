@@ -1,6 +1,7 @@
 import socket
 from sys import argv
 import os
+import msvcrt
 
 
 class Client:
@@ -11,6 +12,7 @@ class Client:
         self.player_id = None
         self.role = None
         self.match_id = None
+        self.disable = KeyboardDisable()
 
     def connect(self, server_address):
         while True:
@@ -102,6 +104,7 @@ class Client:
             self.s_send("c", "3")
             print(("You are now matched with player " + str(self.match_id)
                    + "\nYou are the \"" + self.role + "\""))
+            self.disable.stop()
             # Start the main loop
             self.main_loop()
         except:
@@ -110,6 +113,8 @@ class Client:
     def connected(self):
         print("Welcome to PythonXO, player " + str(self.player_id)
               + "\nPlease wait for another player to join the game...\n So get a cup of tea or something else ( ͡° ͜ʖ ͡°)")
+        self.disable.start()
+
 
     def main_loop(self):
         while True:
@@ -156,7 +161,7 @@ class Client:
                 continue
             # check if position exists
             if 1 <= position <= 9:
-                if board_string[position-1] != " ":
+                if board_string[position - 1] != " ":
                     print("This position is occupied!")
                 else:
                     break
@@ -197,6 +202,21 @@ class Client:
         return ("|" + s[0] + "|" + s[1] + "|" + s[2] + "|\n"
                 + "|" + s[3] + "|" + s[4] + "|" + s[5] + "|\n"
                 + "|" + s[6] + "|" + s[7] + "|" + s[8] + "|\n")
+
+
+class KeyboardDisable:
+    def start(self):
+        self.on = True
+
+    def stop(self):
+        self.on = False
+
+    def __call__(self):
+        while self.on:
+            msvcrt.getwch()
+
+    def __init__(self):
+        self.on = False
 
 
 def main():
