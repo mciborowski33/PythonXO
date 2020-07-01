@@ -1,6 +1,7 @@
 import os
 import time
 import random
+import syslog
 
 # plansza
 from pip._vendor.distlib.compat import raw_input
@@ -41,7 +42,7 @@ class Game:
             # Write the it into the board
             self.board_content[move - 1] = moving_player.role
         else:
-            # print("hehe")
+            # syslog.syslog("hehe")
             # Throw an error to finish this game
             raise Exception
         # Check if this will result in a win
@@ -57,7 +58,7 @@ class Game:
                 # Send the players the result
                 moving_player.send("C", "D")
                 waiting_player.send("C", "D")
-                print("Game between player " + str(self.player1.id) + " and player "
+                syslog.syslog("Game between player " + str(self.player1.id) + " and player "
                       + str(self.player2.id) + " ends with a draw.")
                 return True
             if result == 1:
@@ -65,7 +66,7 @@ class Game:
                 # Send the players the result
                 moving_player.send("C", "W")
                 waiting_player.send("C", "L")
-                print("Player " + str(self.player1.id) + " beats player "
+                syslog.syslog("Player " + str(self.player1.id) + " beats player "
                       + str(self.player2.id) + " and finishes the game.")
                 return True
             return False
